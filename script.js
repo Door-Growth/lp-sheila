@@ -46,17 +46,40 @@ const previous=document.querySelector('.carousel-btn.prev');
 const next=document.querySelector('.carousel-btn.next');
 
 if(track&&cards.length&&dots&&previous&&next){
-  let current=Math.min(1,cards.length-1);
+  let current=0;
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
-  const go=(index,shouldScroll=true)=>{
+  const select=(index)=>{
     current=(index+cards.length)%cards.length;
     cards.forEach((card,number)=>card.classList.toggle('active',number===current));
-    [...dots.children].forEach((dot,number)=>dot.classList.toggle('active',number===current));
-    if(shouldScroll){
-      const card=cards[current];
-      track.scrollTo({left:card.offsetLeft-(track.clientWidth-card.offsetWidth)/2,behavior:reducedMotion.matches?'auto':'smooth'});
-    }
+    [...dots.children].forEach((dot,number)=>{
+      dot.classList.toggle('active',number===current);
+      dot.setAttribute('aria-current',String(number===current));
+    });
   };
+  const go=(index,instant=false)=>{
+    select(index);
+    const card=cards[current];
+    const cardRect=card.getBoundingClientRect();
+    const trackRect=track.getBoundingClientRect();
+    track.scrollTo({left:track.scrollLeft+cardRect.left+cardRect.width/2-trackRect.left-track.clientWidth/2,behavior:instant||reducedMotion.matches?'instant':'smooth'});
+  };
+  let scrollFrame=0;
+  const syncSelection=()=>{
+    scrollFrame=0;
+    const trackRect=track.getBoundingClientRect();
+    const center=trackRect.left+track.clientWidth/2;
+    let nearest=0;
+    let distance=Infinity;
+    cards.forEach((card,index)=>{
+      const rect=card.getBoundingClientRect();
+      const delta=Math.abs(rect.left+rect.width/2-center);
+      if(delta<distance){distance=delta;nearest=index;}
+    });
+    if(nearest!==current)select(nearest);
+  };
+  track.addEventListener('scroll',()=>{
+    if(!scrollFrame)scrollFrame=requestAnimationFrame(syncSelection);
+  },{passive:true});
   cards.forEach((_,index)=>{
     const button=document.createElement('button');
     button.type='button';
@@ -67,10 +90,15 @@ if(track&&cards.length&&dots&&previous&&next){
   previous.addEventListener('click',()=>go(current-1));
   next.addEventListener('click',()=>go(current+1));
   track.addEventListener('keydown',event=>{
-    if(event.key==='ArrowLeft')go(current-1);
-    if(event.key==='ArrowRight')go(current+1);
+    if(event.key==='ArrowLeft'){event.preventDefault();go(current-1);}
+    if(event.key==='ArrowRight'){event.preventDefault();go(current+1);}
   });
-  go(current,false);
+  go(0,true);
+  if('ResizeObserver'in window){
+    new ResizeObserver(()=>go(current,true)).observe(track);
+  }else{
+    addEventListener('resize',()=>go(current,true));
+  }
 
   if(typeof HTMLDialogElement!=='undefined'){
     const lightbox=document.createElement('dialog');
