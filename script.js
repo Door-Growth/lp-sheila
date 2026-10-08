@@ -80,6 +80,51 @@ if(track&&cards.length&&dots&&previous&&next){
   track.addEventListener('scroll',()=>{
     if(!scrollFrame)scrollFrame=requestAnimationFrame(syncSelection);
   },{passive:true});
+  let drag=null;
+  let suppressClickUntil=0;
+  track.querySelectorAll('img').forEach(image=>{image.draggable=false;});
+  track.addEventListener('dragstart',event=>event.preventDefault());
+  track.addEventListener('pointerdown',event=>{
+    suppressClickUntil=0;
+    if(event.pointerType==='touch'||event.button!==0||!event.isPrimary)return;
+    drag={id:event.pointerId,startX:event.clientX,startScroll:track.scrollLeft,moved:false};
+  });
+  track.addEventListener('pointermove',event=>{
+    if(!drag||event.pointerId!==drag.id)return;
+    const delta=event.clientX-drag.startX;
+    if(!drag.moved&&Math.abs(delta)<6)return;
+    if(!drag.moved){
+      drag.moved=true;
+      track.classList.add('is-dragging');
+      track.setPointerCapture(event.pointerId);
+    }
+    event.preventDefault();
+    track.scrollLeft=drag.startScroll-delta;
+  });
+  const endDrag=event=>{
+    if(!drag||event.pointerId!==drag.id)return;
+    const {id,moved}=drag;
+    drag=null;
+    if(moved){
+      suppressClickUntil=performance.now()+500;
+      syncSelection();
+      track.classList.remove('is-dragging');
+      go(current);
+    }
+    if(track.hasPointerCapture(id))track.releasePointerCapture(id);
+  };
+  track.addEventListener('pointerup',endDrag);
+  track.addEventListener('pointercancel',endDrag);
+  track.addEventListener('lostpointercapture',endDrag);
+  track.addEventListener('pointerleave',event=>{
+    if(drag&&!drag.moved)endDrag(event);
+  });
+  track.addEventListener('click',event=>{
+    if(event.detail!==0&&performance.now()<suppressClickUntil){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  },true);
   cards.forEach((_,index)=>{
     const button=document.createElement('button');
     button.type='button';

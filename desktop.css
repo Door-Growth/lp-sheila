@@ -28,7 +28,10 @@ a:focus-visible, button:focus-visible, summary:focus-visible, [role="button"]:fo
 .whatsapp-float::after { animation-delay: 1.2s !important; }
 @keyframes whatsapp-halo-wave { 0% { transform: scale(.92); opacity: .72; } 72%, 100% { transform: scale(1.62); opacity: 0; } }
 .testimonial-card figcaption { display: none; }
-.testimonial-card img { cursor: zoom-in; }
+.carousel-track { cursor: grab; touch-action: pan-x pan-y pinch-zoom; }
+.testimonial-card img { cursor: grab; user-select: none; -webkit-user-drag: none; }
+.carousel-track.is-dragging { scroll-snap-type: none; scroll-behavior: auto; user-select: none; }
+.carousel-track.is-dragging, .carousel-track.is-dragging img { cursor: grabbing; }
 .method-image { width: 100%; height: 250px; object-fit: cover; object-position: center; border-radius: 20px; }
 .method-card:first-child .method-image { object-fit: cover; padding: 0; background: none; }
 .method-content { padding: 4px 0; }
