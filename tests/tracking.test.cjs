@@ -81,7 +81,8 @@ async function run(browser) {
     const first = await t.clickWA();
     assert.equal(first.searchParams.get('phone'), '557499236477');
     const message = first.searchParams.get('text');
-    assert.match(message, /^Olá! Gostaria de mais informações sobre DIU e Implanon, por favor\.\n\nRef: SHA-DI-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/);
+    assert.equal(message, 'Olá! Gostaria de mais informações sobre DIU e Implanon, por favor.');
+    assert(!/Ref:|SHA-DI-/.test(message));
     assert(!/utm_|fbclid|teste123/.test(message));
     const again = await t.clickWA();
     assert.equal(again.searchParams.get('text'), message);
@@ -91,7 +92,8 @@ async function run(browser) {
     assert.equal(reloaded.searchParams.get('text'), message);
     assert.equal(t.requests.length, 0);
     assert.equal(t.errors.length, 0);
-    reports.push('No consent: no vendor request/event/campaign storage; native WhatsApp opens with stable session reference');
+    assert.equal(await t.page.evaluate(() => sessionStorage.getItem('sheila_implanon_diu_lead_id')), null);
+    reports.push('No consent: no vendor request/event/campaign storage or lead ID; native WhatsApp opens without reference');
     await t.context.close();
   }
   {
@@ -110,7 +112,10 @@ async function run(browser) {
     assert.equal(saved.utm_source, 'instagram');
     assert.equal(saved.fbclid, 'teste123');
     const selectors = ['.nav-cta','.hero .button','#videos .button','#metodos .button','#sobre .button','#depoimentos .button','#consultorio .button','#faq .button','.whatsapp-float'];
-    for (const selector of selectors) await t.clickWA(selector);
+    for (const selector of selectors) {
+      const destination = await t.clickWA(selector);
+      assert.equal(destination.searchParams.get('text'), 'Olá! Gostaria de mais informações sobre DIU e Implanon, por favor.');
+    }
     const events = await eventList(t.page, 'lead_lp_implanon_diu');
     assert.equal(events.length, 1);
     assert.equal(events[0][2].button_location, 'header');
@@ -277,7 +282,7 @@ async function run(browser) {
     assert.equal(t.errors.length,0);
     await t.context.close();
   }
-  reports.push('GPC veto, blocked storage and unavailable analytics: contact navigation preserved, in-memory reference/duplicate fallback');
+  reports.push('GPC veto, blocked storage and unavailable analytics: contact navigation preserved, in-memory internal ID/duplicate fallback');
 }
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

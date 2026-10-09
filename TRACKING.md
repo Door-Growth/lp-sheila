@@ -73,11 +73,11 @@ window.SheilaTracking.setConsent({analytics: false, marketing: false});
 
 Também é aceito `window.dispatchEvent(new CustomEvent('sheila:consent', {detail: {analytics: true, marketing: false}}))` depois da inicialização. O CMP deve persistir a escolha, reaplicá-la nas próximas páginas e permitir alteração. Nunca conceder automaticamente por visita, rolagem ou clique de contato. `SheilaTracking.getStatus()` informa estados sem expor IDs pessoais ou conteúdo.
 
-GPC e Do Not Track têm precedência sobre concessões. A revogação bloqueia eventos locais, ativa `ga-disable-G-5RG0MN2QET`, atualiza Consent Mode, revoga Meta se carregada e remove os dados analíticos de sessão mantidos pelo módulo. A referência funcional do WhatsApp continua disponível. O CMP deve cuidar de sua política e da exclusão de cookies já gravados pelas plataformas, conforme sua configuração.
+GPC e Do Not Track têm precedência sobre concessões. A revogação bloqueia eventos locais, ativa `ga-disable-G-5RG0MN2QET`, atualiza Consent Mode, revoga Meta se carregada e remove os dados analíticos de sessão mantidos pelo módulo. A abertura do WhatsApp continua disponível, sem identificadores na mensagem. O CMP deve cuidar de sua política e da exclusão de cookies já gravados pelas plataformas, conforme sua configuração.
 
 **Pendente:** escolher/criar um aviso de consentimento ou conectar o CMP da hospedagem. Não há consentimento presumido na versão entregue. Isso impede coleta efetiva até a integração.
 
-## 5. WhatsApp e referência
+## 5. WhatsApp e identificador interno
 
 Todos os 9 links são reconhecidos por delegação. A detecção também aceita `api.whatsapp.com`, `web.whatsapp.com`, `whatsapp.com` e `wa.me` quando apontam para o mesmo número. Números desconhecidos não são padronizados automaticamente.
 
@@ -99,19 +99,17 @@ Mensagem montada com `URL` e `URLSearchParams`, sem codificação dupla:
 
 ```text
 Olá! Gostaria de mais informações sobre DIU e Implanon, por favor.
-
-Ref: SHA-DI-XXXXXXXX
 ```
 
-O alfabeto é `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, com 8 caracteres aleatórios após `SHA-DI-`, gerados preferencialmente com `crypto.getRandomValues` e amostragem sem viés. Persistência em `sessionStorage['sheila_implanon_diu_lead_id']`; repetido em outros cliques e recargas da aba. Não é construído a partir de nome, telefone ou e-mail.
+O `lead_id` é exclusivamente técnico, interno ao tracking permitido; não é anexado à mensagem e não há integração com CRM. Seu alfabeto é `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, com 8 caracteres aleatórios após `SHA-DI-`, gerados preferencialmente com `crypto.getRandomValues` e amostragem sem viés. Persistência em `sessionStorage['sheila_implanon_diu_lead_id']`; repetido em outros cliques e recargas da aba. Não é construído a partir de nome, telefone ou e-mail.
 
-O href recebe a URL direta do mesmo número durante a ativação do link. Target, comportamento nativo de nova aba, teclado, teclas modificadoras e botão do meio são preservados. A navegação não aguarda servidor analítico. Com JS indisponível, o link original segue funcionando, sem referência dinâmica. Abrir via menu de contexto do navegador não é contado como clique rastreado: não há evento de ativação confiável para comprovar a saída.
+O href recebe a URL direta do mesmo número durante a ativação do link. Target, comportamento nativo de nova aba, teclado, teclas modificadoras e botão do meio são preservados. A navegação não aguarda servidor analítico. Com JS indisponível, o link original segue funcionando. Abrir via menu de contexto do navegador não é contado como clique rastreado: não há evento de ativação confiável para comprovar a saída.
 
-Referência é funcional; pode ser criada no clique mesmo sem consentimento analítico. Sem consentimento, ela não é enviada ao GA4/Meta.
+O identificador interno só é criado no fluxo de tracking permitido. Sem consentimento, abrir o WhatsApp não gera esse identificador. Ele nunca é incluído na mensagem nem enviado à Meta.
 
 ## 6. Evento principal e trava de 24 horas
 
-GA4: `lead_lp_implanon_diu`, somente em ativação real do WhatsApp. Recebe referência, seção, texto genérico do botão e, quando existir, `button_id`. O clique flutuante usa o texto técnico `WhatsApp`.
+GA4: `lead_lp_implanon_diu`, somente em ativação real do WhatsApp. Recebe identificador interno, seção, texto genérico do botão e, quando existir, `button_id`. O clique flutuante usa o texto técnico `WhatsApp`.
 
 Após solicitar envio a uma plataforma autorizada, grava `localStorage['sheila_implanon_diu_lead_last_sent']`. Por 24 horas, impede reenvio do principal tanto ao GA4 como à Meta e permite `whatsapp_repeat_click` no GA4. Todos os cliques continuam abrindo WhatsApp.
 
@@ -161,7 +159,7 @@ Em Admin > Fluxos de dados > fluxo web > Medição otimizada:
 
 1. Manter a visualização de página. Desativar page views por histórico caso uma integração futura mexa em History API sem mudar de página.
 2. Manter Scrolls para 90%. O módulo envia apenas 25/50/75. Se Scrolls estiver desligado, mudar `scroll90` para `manual`; nunca usar ambos para 90%.
-3. **Desligar cliques de saída automáticos**, pois o `link_url` automático poderia capturar a mensagem e a referência do WhatsApp, além de gerar um segundo evento de saída. O módulo já mede a saída permitida com parâmetros restritos.
+3. **Desligar cliques de saída automáticos**, pois o `link_url` automático poderia capturar a mensagem do WhatsApp, além de gerar um segundo evento de saída. O módulo já mede a saída permitida com parâmetros restritos.
 4. Desligar busca no site e interações de formulário automáticas; não há tais fluxos autorizados nesta LP. Não habilitar captura de dados fornecidos por usuários, Google Signals ou personalização.
 5. Vídeos HTML5 são medidos pelo módulo. A medição automática de vídeo do GA4 é voltada a YouTube e não substitui esse código.
 6. Marcar apenas `lead_lp_implanon_diu` como evento principal desejado. Isso é uma mudança na conta, não foi feita por código nem confirmada remotamente.

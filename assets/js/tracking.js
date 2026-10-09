@@ -252,7 +252,7 @@
   const prepareWhatsApp = (link) => {
     const url = new URL('https://api.whatsapp.com/send');
     url.searchParams.set('phone', config.whatsappPhone);
-    url.searchParams.set('text', 'Olá! Gostaria de mais informações sobre DIU e Implanon, por favor.\n\nRef: ' + getLeadId());
+    url.searchParams.set('text', 'Olá! Gostaria de mais informações sobre DIU e Implanon, por favor.');
     link.href = url.href;
     return true;
   };
