@@ -64,6 +64,11 @@ if(track&&cards.length&&dots&&previous&&next){
     track.scrollTo({left:track.scrollLeft+cardRect.left+cardRect.width/2-trackRect.left-track.clientWidth/2,behavior:instant||reducedMotion.matches?'instant':'smooth'});
   };
   let scrollFrame=0;
+  let nativeGesture=null;
+  let nativeGestureTimer=0;
+  const notifyInteraction=(type)=>{
+    document.dispatchEvent(new CustomEvent('sheila:carousel-interaction',{detail:{type,index:current}}));
+  };
   const syncSelection=()=>{
     scrollFrame=0;
     const trackRect=track.getBoundingClientRect();
@@ -79,6 +84,18 @@ if(track&&cards.length&&dots&&previous&&next){
   };
   track.addEventListener('scroll',()=>{
     if(!scrollFrame)scrollFrame=requestAnimationFrame(syncSelection);
+    if(nativeGesture){
+      clearTimeout(nativeGestureTimer);
+      nativeGestureTimer=setTimeout(()=>{
+        const start=nativeGesture;
+        nativeGesture=null;
+        syncSelection();
+        if(start&&Math.abs(track.scrollLeft-start.left)>8)notifyInteraction('swipe');
+      },220);
+    }
+  },{passive:true});
+  track.addEventListener('wheel',event=>{
+    if(event.isTrusted&&(Math.abs(event.deltaX)>0||event.shiftKey)&&!nativeGesture)nativeGesture={left:track.scrollLeft};
   },{passive:true});
   let drag=null;
   let suppressClickUntil=0;
@@ -86,7 +103,12 @@ if(track&&cards.length&&dots&&previous&&next){
   track.addEventListener('dragstart',event=>event.preventDefault());
   track.addEventListener('pointerdown',event=>{
     suppressClickUntil=0;
-    if(event.pointerType==='touch'||event.button!==0||!event.isPrimary)return;
+    if(event.pointerType==='touch'){
+      if(event.isTrusted)nativeGesture={left:track.scrollLeft};
+      return;
+    }
+    nativeGesture=null;
+    if(event.button!==0||!event.isPrimary)return;
     drag={id:event.pointerId,startX:event.clientX,startScroll:track.scrollLeft,moved:false};
   });
   track.addEventListener('pointermove',event=>{
@@ -110,6 +132,7 @@ if(track&&cards.length&&dots&&previous&&next){
       syncSelection();
       track.classList.remove('is-dragging');
       go(current);
+      if(event.isTrusted)notifyInteraction('swipe');
     }
     if(track.hasPointerCapture(id))track.releasePointerCapture(id);
   };
@@ -129,14 +152,26 @@ if(track&&cards.length&&dots&&previous&&next){
     const button=document.createElement('button');
     button.type='button';
     button.setAttribute('aria-label',`Mostrar depoimento ${index+1}`);
-    button.addEventListener('click',()=>go(index));
+    button.addEventListener('click',event=>{
+      nativeGesture=null;
+      go(index);
+      if(event.isTrusted)notifyInteraction('dot_navigation');
+    });
     dots.appendChild(button);
   });
-  previous.addEventListener('click',()=>go(current-1));
-  next.addEventListener('click',()=>go(current+1));
+  previous.addEventListener('click',event=>{
+    nativeGesture=null;
+    go(current-1);
+    if(event.isTrusted)notifyInteraction('previous');
+  });
+  next.addEventListener('click',event=>{
+    nativeGesture=null;
+    go(current+1);
+    if(event.isTrusted)notifyInteraction('next');
+  });
   track.addEventListener('keydown',event=>{
-    if(event.key==='ArrowLeft'){event.preventDefault();go(current-1);}
-    if(event.key==='ArrowRight'){event.preventDefault();go(current+1);}
+    if(event.key==='ArrowLeft'){event.preventDefault();nativeGesture=null;go(current-1);if(event.isTrusted)notifyInteraction('previous');}
+    if(event.key==='ArrowRight'){event.preventDefault();nativeGesture=null;go(current+1);if(event.isTrusted)notifyInteraction('next');}
   });
   go(0,true);
   if('ResizeObserver'in window){
