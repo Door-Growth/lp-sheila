@@ -27,7 +27,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/main.min.css?v=20261008-2">
   <script src="assets/js/tracking-config.js?v=20261008-1" defer></script>
-  <script src="assets/js/tracking.js?v=20261008-2" defer></script>
+  <script src="assets/js/tracking.js?v=20261009-1" defer></script>
+  <link rel="stylesheet" href="assets/css/consent.css?v=20261009-1">
+  <script src="assets/js/consent.js?v=20261009-1" defer></script>
 </head>
 <body>
   <header class="site-header" id="topo">
@@ -164,7 +166,14 @@
   </main>
 
   <a class="whatsapp-float" href="https://wa.link/53n205" target="_blank" rel="noopener" aria-label="Falar com Sheila no WhatsApp"><img src="assets/whatsapp-logo-oficial.webp" alt="" width="128" height="128" decoding="async"></a>
-  <footer>© 2026 Todos os direitos reservados<br><br>COREN/BA 451642 | Enfermeira SHEILA ANTUNES RIBEIRO</footer>
+  <footer>© 2026 Todos os direitos reservados<br><br>COREN/BA 451642 | Enfermeira SHEILA ANTUNES RIBEIRO<br><button type="button" class="privacy-settings" id="privacy-settings" aria-controls="privacy-notice" aria-expanded="false" hidden>Preferências de privacidade</button></footer>
+  <section class="privacy-notice" id="privacy-notice" role="region" aria-labelledby="privacy-title" hidden>
+    <h2 id="privacy-title">Sua privacidade importa</h2>
+    <p>Podemos usar cookies do Google Analytics para medir visitas e interações e melhorar este site? Você pode recusar e continuar navegando normalmente.</p>
+    <p class="privacy-note">Sua escolha vale por 180 dias e pode ser alterada em “Preferências de privacidade”, no rodapé.</p>
+    <p class="privacy-note" id="privacy-signal" hidden>Seu navegador solicita não rastrear. A medição permanecerá desativada.</p>
+    <div class="privacy-actions"><button type="button" id="privacy-accept">Aceitar</button><button type="button" id="privacy-reject">Recusar</button></div>
+  </section>
   <script src="assets/js/main.min.js?v=20261008-3" defer></script>
 </body>
 </html>

@@ -1,0 +1,31 @@
+.privacy-notice[hidden], .privacy-settings[hidden], #privacy-signal[hidden] { display: none; }
+.privacy-notice {
+  position: fixed;
+  z-index: 10000;
+  left: 20px;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  width: min(540px, calc(100vw - 140px));
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 22px;
+  border: 1px solid #e7d6de;
+  border-radius: 20px;
+  background: #fffafc;
+  color: #392c34;
+  box-shadow: 0 8px 32px rgb(69 10 35 / 14%);
+  font: 400 14px/1.6 'Poppins', sans-serif;
+  text-align: left;
+}
+.privacy-notice h2 { margin: 0 0 8px; color: #870631; font: 600 18px/1.4 'Poppins', sans-serif; letter-spacing: normal; }
+.privacy-notice p { margin: 0 0 10px; font-size: 14px; line-height: 1.6; color: #392c34; }
+.privacy-notice .privacy-note { font-size: 12px; color: #65535e; }
+.privacy-actions { display: flex; gap: 12px; margin-top: 16px; }
+.privacy-actions button { flex: 1; min-height: 44px; padding: 10px 16px; border: 1px solid #870631; border-radius: 24px; background: #fffafc; color: #870631; font: 600 14px/1.4 'Poppins', sans-serif; cursor: pointer; }
+.privacy-actions button:hover { background: #f5e7ed; }
+.privacy-actions button:disabled { opacity: .55; cursor: not-allowed; }
+.privacy-actions button:focus-visible, .privacy-settings:focus-visible { outline: 3px solid #b6577a; outline-offset: 4px; }
+.privacy-settings { margin-top: 20px; padding: 8px; border: 0; background: transparent; color: inherit; font: inherit; font-size: 12px; text-decoration: underline; cursor: pointer; }
+@media (max-width: 600px) {
+  .privacy-notice { left: 12px; width: calc(100vw - 24px); bottom: calc(110px + env(safe-area-inset-bottom)); max-height: calc(100dvh - 134px - env(safe-area-inset-bottom)); padding: 18px; border-radius: 18px; }
+}

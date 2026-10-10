@@ -4,7 +4,7 @@ Data da implementação: 08/10/2026. Escopo: intenção de abrir WhatsApp e enga
 
 ## Estado de entrega e ativação
 
-O módulo e os testes estão implementados. **A coleta permanece desligada por padrão**, pois não havia consentimento no repositório nem tags de consentimento no HTML público inspecionado. O visual foi preservado; não foi criado banner sem a definição solicitada ao responsável. WhatsApp funciona independentemente de consentimento ou disponibilidade das plataformas.
+Atualização de 09/10/2026: aviso de consentimento implementado após aprovação do responsável, com botões equivalentes “Aceitar” e “Recusar”. **A coleta começa desligada e o GA4 só carrega após aceitação**, ou em nova visita com aceitação válida já salva. WhatsApp funciona independentemente dessa escolha. O aviso adapta-se ao celular sem cobrir o botão flutuante.
 
 GA4 está configurado para `G-5RG0MN2QET`, com carregamento condicionado à autorização analítica do visitante. Os Pixels `3112315745824007` e `301854493012933` estão configurados, mas **ambos bloqueados** por `meta.enabled: false` e `meta.policyReviewed: false`. Consentimento de marketing sozinho não remove esse bloqueio.
 
@@ -39,7 +39,7 @@ Alterados:
 - `script.js`: notificações técnicas de interações do carrossel; nenhuma alteração de apresentação ou deslocamento.
 - `assets/js/main.min.js`: regenerado a partir da fonte.
 
-Não há alteração de CSS, imagens, vídeos, textos comerciais, tipografia, SEO, espaçamento ou layout.
+Em 09/10 foram adicionados `assets/js/consent.js`, `assets/css/consent.css`, aviso no HTML e botão “Preferências de privacidade” no rodapé. O restante do layout, imagens, vídeos e textos comerciais foi preservado.
 
 ## 3. GA4 e Meta
 
@@ -55,7 +55,13 @@ Meta, apenas se revisão e consentimento permitirem: um único snippet/base, um 
 
 O evento customizado Meta, se futuramente autorizado, recebe somente `{contact_channel: 'whatsapp'}`. Nenhum `lead_id`, UTM, click ID, título de página, método contraceptivo, seção clínica ou dado de paciente é incluído nos parâmetros customizados.
 
-## 4. Consentimento: integração sem mudança visual
+## 4. Consentimento: aviso integrado
+
+O aviso concede exclusivamente analytics; marketing continua negado. A escolha é salva em `localStorage['sheila_privacy_choice_v1']` com versão e data, por 180 dias (prazo de implementação, não afirmação de exigência legal). Valores inválidos, expirados ou futuros exigem nova escolha. Sem storage disponível, a escolha vale só para a página atual. Nenhum clique anterior à autorização é reproduzido.
+
+O botão do rodapé reabre as preferências. Revogar bloqueia eventos, remove identificadores de sessão e tenta excluir os cookies `_ga` e `_ga_5RG0MN2QET` do domínio; a página recarrega para descarregar também a biblioteca Google e seus listeners automáticos. A trava de 24h não é apagada, evitando duplicar conversões ao alterar preferências. Mudanças de escolha sincronizam abas abertas via evento `storage`. GPC/DNT continuam prevalecendo; o aviso informa o bloqueio e desabilita Aceitar nesse caso.
+
+O código suporta também uma integração externa explícita. Se substituir o aviso por um CMP, mantenha apenas uma interface de consentimento:
 
 Antes dos scripts de tracking, um CMP pode fornecer a escolha real do visitante:
 
@@ -73,9 +79,9 @@ window.SheilaTracking.setConsent({analytics: false, marketing: false});
 
 Também é aceito `window.dispatchEvent(new CustomEvent('sheila:consent', {detail: {analytics: true, marketing: false}}))` depois da inicialização. O CMP deve persistir a escolha, reaplicá-la nas próximas páginas e permitir alteração. Nunca conceder automaticamente por visita, rolagem ou clique de contato. `SheilaTracking.getStatus()` informa estados sem expor IDs pessoais ou conteúdo.
 
-GPC e Do Not Track têm precedência sobre concessões. A revogação bloqueia eventos locais, ativa `ga-disable-G-5RG0MN2QET`, atualiza Consent Mode, revoga Meta se carregada e remove os dados analíticos de sessão mantidos pelo módulo. A abertura do WhatsApp continua disponível, sem identificadores na mensagem. O CMP deve cuidar de sua política e da exclusão de cookies já gravados pelas plataformas, conforme sua configuração.
+GPC e Do Not Track têm precedência sobre concessões. A revogação bloqueia eventos locais, ativa `ga-disable-G-5RG0MN2QET`, atualiza Consent Mode, revoga Meta se carregada e remove os dados analíticos de sessão mantidos pelo módulo. A abertura do WhatsApp continua disponível, sem identificadores na mensagem. Um CMP externo deve cuidar também da exclusão de cookies e do descarregamento da biblioteca, como faz o aviso integrado.
 
-**Pendente:** escolher/criar um aviso de consentimento ou conectar o CMP da hospedagem. Não há consentimento presumido na versão entregue. Isso impede coleta efetiva até a integração.
+**Pendente:** validar recebimento no GA4 Tempo real/DebugView e conferir a configuração de medição otimizada na conta. A revisão da Meta continua pendente; aceitar neste aviso não habilita os Pixels. Este aviso controla GA4/Meta deste módulo, não gerencia o iframe Maps, fontes externas ou a telemetria injetada pela hospedagem Cloudflare.
 
 ## 5. WhatsApp e identificador interno
 

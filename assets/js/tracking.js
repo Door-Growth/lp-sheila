@@ -223,7 +223,8 @@
       campaign = {};
       gaClientId = gaSessionId = undefined;
       if (previous.analytics || choice.analytics === false) {
-        [keys.campaign, keys.session, keys.anonymous].forEach(key => remove('sessionStorage', key));
+        [keys.campaign, keys.session, keys.anonymous, keys.lead].forEach(key => remove('sessionStorage', key));
+        leadId = undefined;
       }
     }
     if (consent.marketing) {

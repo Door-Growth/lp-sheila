@@ -74,6 +74,75 @@ async function run(browser) {
   assert.equal((html.match(/href="https:\/\/wa.link\/53n205"/g) || []).length, 9);
   reports.push('Static audit: one module, 9 CTAs, no Google Ads or GTM');
 
+  for (const mobile of [false, true]) {
+    const t = await setup(browser, {mobile});
+    assert(await t.page.locator('#privacy-notice').isVisible());
+    assert.equal(t.requests.length, 0);
+    const panel = await t.page.locator('#privacy-notice').boundingBox();
+    const floating = await t.page.locator('.whatsapp-float').boundingBox();
+    assert(panel.x >= 0 && panel.y >= 0 && panel.x + panel.width <= t.page.viewportSize().width);
+    assert(panel.x + panel.width <= floating.x || panel.y + panel.height <= floating.y, 'Consent must not cover WhatsApp');
+    await t.page.screenshot({path:path.resolve(root,'..',mobile ? 'consent-mobile.png' : 'consent-desktop.png')});
+    await t.page.locator('#privacy-reject').click();
+    assert(!(await t.page.locator('#privacy-notice').isVisible()));
+    await t.page.reload({waitUntil:'load'});
+    assert(!(await t.page.locator('#privacy-notice').isVisible()));
+    assert.equal(t.requests.length, 0);
+    await t.page.locator('#privacy-settings').click();
+    assert.equal(await t.page.evaluate(()=>document.activeElement.id), 'privacy-accept');
+    await t.page.locator('#privacy-accept').click();
+    assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().analytics), true);
+    assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().marketing), false);
+    assert.equal(t.requests.filter(u=>u.includes('gtag/js')).length, 1);
+    assert.equal(t.requests.filter(u=>u.includes('facebook')).length, 0);
+    await t.clickWA();
+    assert.equal((await eventList(t.page,'lead_lp_implanon_diu')).length, 1);
+    await t.page.reload({waitUntil:'load'});
+    assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().analytics), true);
+    assert(!(await t.page.locator('#privacy-notice').isVisible()));
+    await t.page.evaluate(()=>{document.cookie='_ga=test; path=/';document.cookie='_ga_5RG0MN2QET=test; path=/';});
+    const tab = await t.context.newPage();
+    await tab.goto(base, {waitUntil:'load'});
+    assert.equal(await tab.evaluate(()=>window.SheilaTracking.getStatus().analytics), true);
+    const requestsBeforeRevoke = t.requests.length;
+    await t.page.locator('#privacy-settings').click();
+    await Promise.all([t.page.waitForEvent('load'), tab.waitForEvent('load'), t.page.locator('#privacy-reject').click()]);
+    assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().analytics), false);
+    assert.equal(await tab.evaluate(()=>window.SheilaTracking.getStatus().analytics), false);
+    assert.equal(t.requests.length, requestsBeforeRevoke);
+    assert.equal(await t.page.evaluate(()=>document.cookie.includes('_ga')), false);
+    assert.equal(await t.page.evaluate(()=>sessionStorage.getItem('sheila_implanon_diu_lead_id')), null);
+    await t.clickWA();
+    assert.equal((await eventList(t.page)).length, 0);
+    assert.equal(t.errors.length, 0);
+    await t.context.close();
+  }
+  for (const options of [{gpc:true}, {storageBlocked:true}, {}]) {
+    const t = await setup(browser, options);
+    if (options.gpc) {
+      assert(await t.page.locator('#privacy-accept').isDisabled());
+      assert(await t.page.locator('#privacy-signal').isVisible());
+      await t.page.locator('#privacy-reject').click();
+      assert.equal(t.requests.length, 0);
+    } else if (options.storageBlocked) {
+      await t.page.locator('#privacy-accept').click();
+      assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().analytics),true);
+      await t.page.reload({waitUntil:'load'});
+      assert(await t.page.locator('#privacy-notice').isVisible());
+      assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().analytics),false);
+    } else {
+      for (const value of ['invalid', JSON.stringify({version:1,analytics:true,savedAt:Date.now()-181*86400000})]) {
+        await t.page.evaluate(value=>localStorage.setItem('sheila_privacy_choice_v1',value),value);
+        await t.page.reload({waitUntil:'load'});
+        assert(await t.page.locator('#privacy-notice').isVisible());
+        assert.equal(t.requests.length,0);
+      }
+    }
+    assert.equal(t.errors.length,0);
+    await t.context.close();
+  }
+  reports.push('Consent UI desktop/mobile: no collection before choice, accept/reject, persistence, revoke across tabs, GA cookie cleanup, GPC, storage failure and expiry');
+
   {
     const t = await setup(browser);
     assert.equal(t.requests.length, 0);
