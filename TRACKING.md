@@ -10,6 +10,8 @@ GA4 está configurado para `G-5RG0MN2QET`, com carregamento condicionado à auto
 
 O teste da Meta usa uma configuração temporária interceptada pelo navegador, sem alterar a configuração entregue nem enviar dados à Meta. Não houve acesso ao Events Manager, à classificação do domínio, ao Pixel Helper ou ao GA4 DebugView. Não há confirmação de recebimento em produção.
 
+Verificação online em 09/10/2026 após publicação: aviso visível, nenhuma carga GA4 antes da escolha, biblioteca real `gtag.js` carregada uma vez após Aceitar. As requisições de coleta foram interceptadas antes do envio, confirmando `page_view`, `tracking_context` e `lead_lp_implanon_diu` destinados a `G-5RG0MN2QET`, sem contaminar a conta. Revogação e recarga impediram nova carga GA4. Nenhuma exceção JavaScript observada. **Ainda não comprova recebimento no GA4.** A biblioteca também gerou `click` e `scroll` automáticos: desativar cliques de saída na configuração de medição otimizada da conta, conforme seção 13; não foi alterada a conta. Meta permanece desligada.
+
 ## 1. Auditoria inicial
 
 - Site estático de uma página: `index.html`, sem SPA, framework ou backend.
