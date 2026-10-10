@@ -5,7 +5,7 @@
   const config = window.SheilaTrackingConfig;
   if (!config || !/^G-[A-Z0-9]+$/.test(config.ga4Id)) return;
   const prefix = 'sheila_implanon_diu_';
-  const keys = {lead: prefix + 'lead_id', campaign: prefix + 'campaign', lock: prefix + 'lead_last_sent', session: prefix + 'session_id', anonymous: prefix + 'anonymous_id'};
+  const keys = {lead: prefix + 'lead_id', campaign: prefix + 'campaign', lock: prefix + 'lead_last_sent', metaLock: prefix + 'meta_lead_last_sent', session: prefix + 'session_id', anonymous: prefix + 'anonymous_id'};
   const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id'];
   const clickKeys = ['gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid', 'ttclid'];
   const query = new URLSearchParams(location.search);
@@ -19,7 +19,7 @@
   let gaClientId;
   let gaSessionId;
   let leadId;
-  let lastMemorySent = 0;
+  const lastMemorySent = {ga: 0, meta: 0};
   let contextSent = false;
   const visitedScroll = new Set();
   const deniedSignals = () => navigator.globalPrivacyControl === true || navigator.doNotTrack === '1' || window.doNotTrack === '1';
@@ -176,7 +176,7 @@
       emitGA('tracking_context', {...technicalContext(), anonymous_id: sessionToken(keys.anonymous), session_id: getSessionId()});
     }
   };
-  const metaAllowed = () => !!(config.meta && config.meta.enabled === true && config.meta.policyReviewed === true && consent.marketing && !deniedSignals() && ['contact_click', 'lead_lp_implanon_diu'].includes(config.meta.eventName));
+  const metaAllowed = () => !!(config.meta && config.meta.enabled === true && config.meta.policyReviewed === true && consent.marketing && !deniedSignals() && config.meta.eventName === 'LEAD_LP');
   const initMeta = () => {
     if (!metaAllowed() || metaConfigured) return;
     /* Standard single Meta queue; never insert a second base for the second ID. */
@@ -261,20 +261,26 @@
     log('WhatsApp clicked');
     if (!consent.analytics && !metaAllowed()) return;
     const now = Date.now();
-    const stored = Number(read('localStorage', keys.lock)) || 0;
-    const last = Math.max(stored, lastMemorySent);
-    const params = {button_text: link.classList.contains('whatsapp-float') ? 'WhatsApp' : link.textContent.replace(/↗/g, '').trim().slice(0, 100), button_location: buttonLocation(link), button_id: link.id || undefined, lead_id: getLeadId(), anonymous_id: consent.analytics ? sessionToken(keys.anonymous) : undefined, session_id: consent.analytics ? getSessionId() : undefined};
-    if (last > 0 && last <= now && now - last < day) {
-      emitGA('whatsapp_repeat_click', params);
-      log('Duplicate conversion prevented');
-      return;
-    }
-    const gaRequested = emitGA('lead_lp_implanon_diu', params);
-    const metaRequested = emitMeta();
-    if (gaRequested || metaRequested) {
-      lastMemorySent = now;
-      write('localStorage', keys.lock, String(now));
+    const duplicate = (platform, key) => {
+      const last = Math.max(Number(read('localStorage', key)) || 0, lastMemorySent[platform]);
+      return last > 0 && last <= now && now - last < day;
+    };
+    const markSent = (platform, key) => {
+      lastMemorySent[platform] = now;
+      write('localStorage', key, String(now));
       log('Lead conversion sent (request queued; delivery not confirmed)');
+    };
+    // Separate locks: authorizing one platform later must not suppress its first eligible click.
+    if (consent.analytics) {
+      const params = {button_text: link.classList.contains('whatsapp-float') ? 'WhatsApp' : link.textContent.replace(/↗/g, '').trim().slice(0, 100), button_location: buttonLocation(link), button_id: link.id || undefined, lead_id: getLeadId(), anonymous_id: sessionToken(keys.anonymous), session_id: getSessionId()};
+      if (duplicate('ga', keys.lock)) {
+        emitGA('whatsapp_repeat_click', params);
+        log('Duplicate conversion prevented');
+      } else if (emitGA('lead_lp_implanon_diu', params)) markSent('ga', keys.lock);
+    }
+    if (metaAllowed()) {
+      if (duplicate('meta', keys.metaLock)) log('Duplicate conversion prevented');
+      else if (emitMeta()) markSent('meta', keys.metaLock);
     }
   };
   const sendWhatsAppClick = (link) => {

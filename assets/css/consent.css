@@ -20,7 +20,15 @@
 .privacy-notice h2 { margin: 0 0 8px; color: #870631; font: 600 18px/1.4 'Poppins', sans-serif; letter-spacing: normal; }
 .privacy-notice p { margin: 0 0 10px; font-size: 14px; line-height: 1.6; color: #392c34; }
 .privacy-notice .privacy-note { font-size: 12px; color: #65535e; }
-.privacy-actions { display: flex; gap: 12px; margin-top: 16px; }
+.privacy-options { border: 0; padding: 0; margin: 12px 0; min-width: 0; }
+.privacy-options legend { font-size: 12px; color: #65535e; }
+.privacy-options label { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; cursor: pointer; }
+.privacy-options input { flex: 0 0 20px; width: 20px; height: 20px; margin: 3px 0 0; accent-color: #870631; }
+.privacy-options strong { display: block; font-size: 12px; font-weight: 600; }
+.privacy-options small { display: block; font-size: 12px; line-height: 1.5; color: #65535e; }
+.privacy-options input:focus-visible { outline: 3px solid #b6577a; outline-offset: 3px; }
+.privacy-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.privacy-actions #privacy-save { flex-basis: 100%; }
 .privacy-actions button { flex: 1; min-height: 44px; padding: 10px 16px; border: 1px solid #870631; border-radius: 24px; background: #fffafc; color: #870631; font: 600 14px/1.4 'Poppins', sans-serif; cursor: pointer; }
 .privacy-actions button:hover { background: #f5e7ed; }
 .privacy-actions button:disabled { opacity: .55; cursor: not-allowed; }

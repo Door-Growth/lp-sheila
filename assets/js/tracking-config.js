@@ -7,9 +7,10 @@ window.SheilaTrackingConfig = Object.freeze({
   scroll90: 'automatic',
   meta: Object.freeze({
     pixelIds: ['3112315745824007', '301854493012933'],
-    enabled: false,
-    policyReviewed: false,
-    /* A neutral name is only a proposal, not permission to collect health data. */
-    eventName: 'contact_click'
+    enabled: true,
+    /* Category restriction notice reviewed with the owner; not a Meta clearance.
+       Meta may still restrict events/regions. Do not bypass those restrictions. */
+    policyReviewed: true,
+    eventName: 'LEAD_LP'
   })
 });

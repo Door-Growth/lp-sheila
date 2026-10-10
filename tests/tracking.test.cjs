@@ -29,13 +29,13 @@ async function setup(browser, options = {}) {
   await context.addInitScript(options => {
     if (options.storageBlocked) Object.defineProperty(Storage.prototype, 'setItem', {value() {throw new Error('Storage blocked');}});
     if (options.gpc) Object.defineProperty(navigator, 'globalPrivacyControl', {value: true});
-    if (options.consent) window.SheilaConsent = {analytics:true, marketing:true};
+    if (options.consent) window.SheilaConsent = {analytics:true, marketing:!!options.meta};
   }, options);
   await context.route('**/*', async route => {
     const url = route.request().url();
-    if (url.includes('tracking-config.js') && (options.meta || options.manual90)) {
+    if (url.includes('tracking-config.js') && (options.metaDisabled || options.manual90)) {
       let config = originalConfig;
-      if (options.meta) config = config.replace('enabled: false', 'enabled: true').replace('policyReviewed: false', 'policyReviewed: true');
+      if (options.metaDisabled) config = config.replace('enabled: true', 'enabled: false');
       if (options.manual90) config = config.replace("scroll90: 'automatic'", "scroll90: 'manual'");
       return route.fulfill({contentType:'text/javascript', body:config});
     }
@@ -90,7 +90,8 @@ async function run(browser) {
     assert.equal(t.requests.length, 0);
     await t.page.locator('#privacy-settings').click();
     assert.equal(await t.page.evaluate(()=>document.activeElement.id), 'privacy-accept');
-    await t.page.locator('#privacy-accept').click();
+    await t.page.locator('#privacy-analytics').check();
+    await t.page.locator('#privacy-save').click();
     assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().analytics), true);
     assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().marketing), false);
     assert.equal(t.requests.filter(u=>u.includes('gtag/js')).length, 1);
@@ -131,8 +132,12 @@ async function run(browser) {
       assert(await t.page.locator('#privacy-notice').isVisible());
       assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().analytics),false);
     } else {
-      for (const value of ['invalid', JSON.stringify({version:1,analytics:true,savedAt:Date.now()-181*86400000})]) {
-        await t.page.evaluate(value=>localStorage.setItem('sheila_privacy_choice_v1',value),value);
+      await t.page.evaluate(()=>localStorage.setItem('sheila_privacy_choice_v1',JSON.stringify({version:1,analytics:true,savedAt:Date.now()})));
+      await t.page.reload({waitUntil:'load'});
+      assert(await t.page.locator('#privacy-notice').isVisible());
+      assert.equal(t.requests.length,0,'Old analytics permission must not authorize marketing');
+      for (const value of ['invalid', JSON.stringify({version:2,analytics:true,marketing:true,savedAt:Date.now()-181*86400000})]) {
+        await t.page.evaluate(value=>localStorage.setItem('sheila_privacy_choice_v2',value),value);
         await t.page.reload({waitUntil:'load'});
         assert(await t.page.locator('#privacy-notice').isVisible());
         assert.equal(t.requests.length,0);
@@ -142,6 +147,67 @@ async function run(browser) {
     await t.context.close();
   }
   reports.push('Consent UI desktop/mobile: no collection before choice, accept/reject, persistence, revoke across tabs, GA cookie cleanup, GPC, storage failure and expiry');
+  {
+    const t = await setup(browser);
+    const fb = () => t.page.evaluate(() => (window.fbq?.queue || []).map(a=>Array.from(a)));
+    assert(!(await t.page.locator('#privacy-analytics').isChecked()));
+    assert(!(await t.page.locator('#privacy-marketing').isChecked()));
+    await t.page.locator('#privacy-marketing').check();
+    await t.page.locator('#privacy-save').click();
+    assert.equal(t.requests.filter(u=>u.includes('gtag/js')).length,0);
+    assert.equal(t.requests.filter(u=>u.includes('fbevents.js')).length,1);
+    assert.equal((await fb()).filter(a=>a[0]==='trackCustom').length,0);
+    await t.clickWA();
+    assert.equal((await fb()).filter(a=>a[0]==='trackCustom' && a[1]==='LEAD_LP').length,1);
+    assert.equal(await t.page.evaluate(()=>sessionStorage.getItem('sheila_implanon_diu_lead_id')),null);
+    await t.page.reload({waitUntil:'load'});
+    assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().marketing),true);
+    assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().analytics),false);
+    await t.clickWA();
+    assert.equal((await fb()).filter(a=>a[0]==='trackCustom').length,0,'Meta lock persists across reloads');
+    await t.page.locator('#privacy-settings').click();
+    assert(await t.page.locator('#privacy-marketing').isChecked());
+    await t.page.locator('#privacy-accept').click();
+    await t.clickWA();
+    assert.equal((await eventList(t.page,'lead_lp_implanon_diu')).length,1,'Earlier Meta click must not lock out newly authorized GA4');
+    assert.equal((await fb()).filter(a=>a[0]==='trackCustom').length,0);
+    await t.page.evaluate(()=>{document.cookie='_fbp=test; path=/';document.cookie='_fbc=test; path=/';});
+    await t.page.locator('#privacy-settings').click();
+    await t.page.locator('#privacy-marketing').uncheck();
+    const loadsBefore = t.requests.filter(u=>u.includes('fbevents.js')).length;
+    await Promise.all([t.page.waitForEvent('load'),t.page.locator('#privacy-save').click()]);
+    assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().analytics),true);
+    assert.equal(await t.page.evaluate(()=>window.SheilaTracking.getStatus().marketing),false);
+    assert.equal(t.requests.filter(u=>u.includes('fbevents.js')).length,loadsBefore);
+    assert.equal(await t.page.evaluate(()=>/_fbp|_fbc/.test(document.cookie)),false);
+    assert.equal(t.errors.length,0);
+    await t.context.close();
+  }
+  {
+    const t = await setup(browser,{consent:true});
+    await t.clickWA();
+    await t.page.locator('#privacy-settings').click();
+    await t.page.locator('#privacy-accept').click();
+    const fb = () => t.page.evaluate(() => window.fbq.queue.map(a=>Array.from(a)));
+    assert.equal((await fb()).filter(a=>a[0]==='trackCustom').length,0,'Do not replay pre-consent clicks');
+    await t.clickWA();
+    assert.equal((await fb()).filter(a=>a[0]==='trackCustom').length,1,'Earlier GA4 click must not suppress first Meta click');
+    assert.equal((await eventList(t.page,'lead_lp_implanon_diu')).length,1);
+    await t.page.evaluate(()=>localStorage.setItem('sheila_implanon_diu_meta_lead_last_sent',String(Date.now()-86400001)));
+    await t.page.reload({waitUntil:'load'});
+    await t.clickWA();
+    assert.equal((await fb()).filter(a=>a[0]==='trackCustom').length,1,'Meta may send again after 24h');
+    assert.equal((await eventList(t.page,'lead_lp_implanon_diu')).length,0,'GA4 lock remains intact');
+    assert.equal(t.errors.length,0);
+    await t.context.close();
+  }
+  {
+    const t = await setup(browser,{metaDisabled:true});
+    await t.page.locator('#privacy-accept').click();
+    assert.equal(t.requests.filter(u=>u.includes('facebook')).length,0,'Operational Meta switch remains effective');
+    await t.context.close();
+  }
+  reports.push('Independent analytics/marketing choice, legacy consent reset, minimal Meta data, independent 24h locks, expiry, Meta-only revocation and kill switch');
 
   {
     const t = await setup(browser);
@@ -227,17 +293,16 @@ async function run(browser) {
     let fb = await metaQueue();
     assert.deepEqual(fb.filter(a => a[0] === 'init').map(a => a[1]), ['3112315745824007','301854493012933']);
     assert.equal(fb.filter(a => a[0] === 'track' && a[1] === 'PageView').length, 1);
-    await t.clickWA();
-    await t.clickWA();
+    for (const selector of ['.nav-cta','.hero .button','#videos .button','#metodos .button','#sobre .button','#depoimentos .button','#consultorio .button','#faq .button','.whatsapp-float']) await t.clickWA(selector);
     fb = await metaQueue();
     const custom = fb.filter(a => a[0] === 'trackCustom');
     assert.equal(custom.length, 1);
-    assert.equal(custom[0][1], 'contact_click');
+    assert.equal(custom[0][1], 'LEAD_LP');
     assert.deepEqual(custom[0][2], {contact_channel:'whatsapp'});
     assert(!JSON.stringify(custom).includes('SHA-DI-'));
     await t.page.evaluate(() => window.SheilaTracking.setConsent({analytics:false, marketing:false}));
     assert((await metaQueue()).some(a => a[0] === 'consent' && a[1] === 'revoke'));
-    reports.push('Meta test fixture only: one loader, two init IDs, one PageView broadcast, one minimal custom event, repeat blocked, revoke');
+    reports.push('Meta deployed config with vendor intercepted: one loader, two init IDs, PageView broadcast, LEAD_LP on all nine CTA positions, repeat blocked, revoke');
     await t.context.close();
   }
   {

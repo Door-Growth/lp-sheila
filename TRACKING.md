@@ -4,13 +4,13 @@ Data da implementação: 08/10/2026. Escopo: intenção de abrir WhatsApp e enga
 
 ## Estado de entrega e ativação
 
-Atualização de 09/10/2026: aviso de consentimento implementado após aprovação do responsável, com botões equivalentes “Aceitar” e “Recusar”. **A coleta começa desligada e o GA4 só carrega após aceitação**, ou em nova visita com aceitação válida já salva. WhatsApp funciona independentemente dessa escolha. O aviso adapta-se ao celular sem cobrir o botão flutuante.
+Atualização de 09/10/2026: aviso aprovado com escolhas independentes de Estatísticas (GA4) e Marketing (Meta), inicialmente desmarcadas; ações “Aceitar todos”, “Recusar todos” e “Salvar escolhas”. **Cada biblioteca só carrega após autorização da respectiva finalidade**, ou em nova visita com escolha válida salva. WhatsApp funciona independentemente dessa escolha. O aviso adapta-se ao celular sem cobrir o botão flutuante.
 
-GA4 está configurado para `G-5RG0MN2QET`, com carregamento condicionado à autorização analítica do visitante. Os Pixels `3112315745824007` e `301854493012933` estão configurados, mas **ambos bloqueados** por `meta.enabled: false` e `meta.policyReviewed: false`. Consentimento de marketing sozinho não remove esse bloqueio.
+GA4 está configurado para `G-5RG0MN2QET`. Os Pixels `3112315745824007` e `301854493012933` estão habilitados no código, condicionados a consentimento de marketing. O proprietário forneceu a decisão da Meta: compartilhamento poderá ser bloqueado para visitantes na Região Europeia; em outros locais certos eventos padrão podem ser bloqueados e a fonte pode estar em configuração básica. A rejeição da revisão de categoria não foi revertida. `policyReviewed: true` registra a leitura desse aviso com o responsável, **não aprovação/liberação pela Meta**. `enabled: false` continua disponível como desligamento operacional.
 
-O teste da Meta usa uma configuração temporária interceptada pelo navegador, sem alterar a configuração entregue nem enviar dados à Meta. Não houve acesso ao Events Manager, à classificação do domínio, ao Pixel Helper ou ao GA4 DebugView. Não há confirmação de recebimento em produção.
+Os testes locais da Meta usam a configuração entregue e interceptam a biblioteca externa para inspecionar a fila sem enviar eventos reais. O proprietário confirmou `LEAD_LP` como nome histórico para cliques no WhatsApp. Não houve acesso autenticado a Testar eventos, Pixel Helper ou GA4 DebugView. Não há confirmação de recebimento/aceitação pelas contas.
 
-Verificação online em 09/10/2026 após publicação: aviso visível, nenhuma carga GA4 antes da escolha, biblioteca real `gtag.js` carregada uma vez após Aceitar. As requisições de coleta foram interceptadas antes do envio, confirmando `page_view`, `tracking_context` e `lead_lp_implanon_diu` destinados a `G-5RG0MN2QET`, sem contaminar a conta. Revogação e recarga impediram nova carga GA4. Nenhuma exceção JavaScript observada. **Ainda não comprova recebimento no GA4.** A biblioteca também gerou `click` e `scroll` automáticos: desativar cliques de saída na configuração de medição otimizada da conta, conforme seção 13; não foi alterada a conta. Meta permanece desligada.
+Verificação online em 09/10/2026 na versão inicial do aviso (antes da ativação Meta): biblioteca real `gtag.js` carregada uma vez após Aceitar. Coleta interceptada antes do envio confirmou `page_view`, `tracking_context` e `lead_lp_implanon_diu` para `G-5RG0MN2QET`, sem contaminar a conta. Revogação impediu nova carga GA4. **Não comprova recebimento no GA4.** A biblioteca também gerou `click` e `scroll` automáticos: desativar cliques de saída na medição otimizada da conta; não foi alterada a conta.
 
 ## 1. Auditoria inicial
 
@@ -53,15 +53,15 @@ Google Signals e personalização de publicidade ficam desligados. As quatro fla
 
 Meta, apenas se revisão e consentimento permitirem: um único snippet/base, um `init` para cada ID, um `fbq('track','PageView')` transmitido aos dois Pixels, e um `trackCustom` por clique elegível. `autoConfig` é desligado para cada Pixel. Não há advanced matching ou leitura manual de `_fbp`/`_fbc`.
 
-**O evento Meta solicitado `lead_lp_implanon_diu` não foi habilitado.** A classificação e as restrições da conta não puderam ser consultadas. `contact_click` está proposto no config como nome neutro, também desligado. Não se afirma que o nome original foi formalmente rejeitado pela Meta nem que mudar o nome torne a transmissão permitida. URLs, domínio e metadados automáticos do Pixel também podem revelar contexto de saúde. Não habilitar o Pixel em domínio/categoria restrita ou para contornar bloqueios.
+**Evento Meta: `LEAD_LP`, respeitando maiúsculas do histórico confirmado pelo usuário.** Somente em clique real nos botões de WhatsApp, nunca em visita, rolagem, vídeo ou FAQ. Não são enviados `contact_click`, `lead_lp_implanon_diu`, `scroll`, `click` ou `gtag.config` à Meta pelo módulo. O nome foi preservado por compatibilidade, não para contornar restrições. URLs, domínio e metadados automáticos do Pixel podem revelar contexto da página; a Meta continua aplicando suas regras. Se bloquear o domínio/evento, desativar a integração afetada, sem substituir domínio ou nome para evasão.
 
-O evento customizado Meta, se futuramente autorizado, recebe somente `{contact_channel: 'whatsapp'}`. Nenhum `lead_id`, UTM, click ID, título de página, método contraceptivo, seção clínica ou dado de paciente é incluído nos parâmetros customizados.
+O evento customizado Meta recebe somente `{contact_channel: 'whatsapp'}`. Nenhum `lead_id`, UTM, click ID, título de página, método contraceptivo, seção clínica ou dado de paciente é incluído nos parâmetros customizados. A Meta pode filtrar parâmetros e eventos na configuração básica. Consentimento não remove restrições da plataforma.
 
 ## 4. Consentimento: aviso integrado
 
-O aviso concede exclusivamente analytics; marketing continua negado. A escolha é salva em `localStorage['sheila_privacy_choice_v1']` com versão e data, por 180 dias (prazo de implementação, não afirmação de exigência legal). Valores inválidos, expirados ou futuros exigem nova escolha. Sem storage disponível, a escolha vale só para a página atual. Nenhum clique anterior à autorização é reproduzido.
+O aviso permite analytics e marketing separadamente. A escolha é salva em `localStorage['sheila_privacy_choice_v2']` com ambas as permissões, versão e data, por 180 dias (prazo de implementação, não afirmação de exigência legal). A escolha antiga v1 não habilita marketing: visitantes anteriores recebem o novo aviso. Valores inválidos, expirados ou futuros exigem nova escolha. Sem storage disponível, a escolha vale só para a página atual. Nenhum clique anterior à autorização é reproduzido.
 
-O botão do rodapé reabre as preferências. Revogar bloqueia eventos, remove identificadores de sessão e tenta excluir os cookies `_ga` e `_ga_5RG0MN2QET` do domínio; a página recarrega para descarregar também a biblioteca Google e seus listeners automáticos. A trava de 24h não é apagada, evitando duplicar conversões ao alterar preferências. Mudanças de escolha sincronizam abas abertas via evento `storage`. GPC/DNT continuam prevalecendo; o aviso informa o bloqueio e desabilita Aceitar nesse caso.
+O rodapé reabre as preferências. Revogar analytics remove identificadores de sessão e tenta excluir `_ga` e `_ga_5RG0MN2QET`; revogar marketing tenta excluir `_fbp` e `_fbc`. A página recarrega para descarregar bibliotecas/listeners revogados, mantendo a outra finalidade se autorizada. As travas de 24h não são apagadas, evitando duplicar conversões ao alterar preferências. Mudanças sincronizam abas via `storage`. GPC/DNT prevalecem; o aviso informa o bloqueio e desabilita as opções de autorização.
 
 O código suporta também uma integração externa explícita. Se substituir o aviso por um CMP, mantenha apenas uma interface de consentimento:
 
@@ -83,7 +83,7 @@ Também é aceito `window.dispatchEvent(new CustomEvent('sheila:consent', {detai
 
 GPC e Do Not Track têm precedência sobre concessões. A revogação bloqueia eventos locais, ativa `ga-disable-G-5RG0MN2QET`, atualiza Consent Mode, revoga Meta se carregada e remove os dados analíticos de sessão mantidos pelo módulo. A abertura do WhatsApp continua disponível, sem identificadores na mensagem. Um CMP externo deve cuidar também da exclusão de cookies e do descarregamento da biblioteca, como faz o aviso integrado.
 
-**Pendente:** validar recebimento no GA4 Tempo real/DebugView e conferir a configuração de medição otimizada na conta. A revisão da Meta continua pendente; aceitar neste aviso não habilita os Pixels. Este aviso controla GA4/Meta deste módulo, não gerencia o iframe Maps, fontes externas ou a telemetria injetada pela hospedagem Cloudflare.
+**Pendente:** validar recebimento no GA4 Tempo real/DebugView, nos dois Pixels em Testar eventos e conferir medição otimizada da conta GA4. Este aviso controla GA4/Meta deste módulo, não gerencia o iframe Maps, fontes externas ou a telemetria injetada pela hospedagem Cloudflare.
 
 ## 5. WhatsApp e identificador interno
 
@@ -119,11 +119,11 @@ O identificador interno só é criado no fluxo de tracking permitido. Sem consen
 
 GA4: `lead_lp_implanon_diu`, somente em ativação real do WhatsApp. Recebe identificador interno, seção, texto genérico do botão e, quando existir, `button_id`. O clique flutuante usa o texto técnico `WhatsApp`.
 
-Após solicitar envio a uma plataforma autorizada, grava `localStorage['sheila_implanon_diu_lead_last_sent']`. Por 24 horas, impede reenvio do principal tanto ao GA4 como à Meta e permite `whatsapp_repeat_click` no GA4. Todos os cliques continuam abrindo WhatsApp.
+Travas de 24 horas independentes: GA4 usa `localStorage['sheila_implanon_diu_lead_last_sent']`; os dois Pixels Meta compartilham `localStorage['sheila_implanon_diu_meta_lead_last_sent']`. Cada trava só é gravada quando o envio é solicitado à respectiva plataforma autorizada. Repetições geram somente `whatsapp_repeat_click` no GA4, não outro `LEAD_LP` na Meta. Todos os cliques abrem WhatsApp.
 
 Sem qualquer plataforma autorizada, não grava a trava e não reproduz cliques anteriores quando o consentimento chegar. Web Locks serializa cliques de abas da mesma origem quando disponível. Se storage/Web Locks estiverem indisponíveis, usa memória por documento; **não é possível garantir deduplicação de 24h entre recargas, navegadores, dispositivos ou modos privados nesse cenário**. Limpar armazenamento também elimina a trava.
 
-“Sent” no debug significa comando solicitado/enfileirado, não recebimento confirmado. Se um bloqueador impedir o fornecedor depois do comando, a deduplicação continua evitando retransmissões e não tenta contornar o bloqueio. A mesma trava global é aplicada aos fornecedores; habilitar marketing depois de um clique já medido não reenvia retroativamente o evento à Meta.
+“Sent” significa comando solicitado/enfileirado, não recebimento confirmado. Se um bloqueador impedir o fornecedor, não se contorna o bloqueio. Habilitar marketing depois de um clique já medido no GA4 não reenvia retroativamente o evento: apenas um novo clique elegível poderá gerar o primeiro `LEAD_LP`, sem duplicar o evento principal do GA4.
 
 ## 7. Atribuição e parâmetros
 
@@ -195,7 +195,7 @@ Chrome pode ser definido por `CHROME_PATH`; caminho padrão é o Chrome instalad
 
 Resultados locais: instalação única, ausência de Ads/GTM, 9 posições de CTA, número e mensagem, referência estável por recarga, consentimento negado/concedido/revogado, GPC, captura/persistência de UTMs e fbclid, trava/expiração 24h, clique repetido, carregamento duplicado do módulo, scrolls sem duplicidade, FAQ abre/fecha, navegação, toque real no carrossel, 4 players em testes de estados/marcos/replay/seek, mapa por link de teste, limites dos payloads, bloqueio de storage/fornecedores e ausência de exceções JS. Vendors interceptados: os testes não poluem as contas.
 
-Teste Meta isolado: configuração temporária permite validar fila única, dois init, um PageView broadcast e evento mínimo compartilhado; configuração entregue continua bloqueada. Isso **não comprova recebimento pelos Pixels**.
+Teste Meta isolado: configuração entregue, biblioteca interceptada, fila única, dois init, PageView broadcast, `LEAD_LP` com parâmetros mínimos, nove CTAs, consentimento seletivo, travas independentes, expiração e revogação. Isso **não comprova recebimento pelos Pixels**.
 
 Para produção, depois do deploy e integração de consentimento:
 
@@ -206,12 +206,12 @@ Para produção, depois do deploy e integração de consentimento:
 5. Conferir armazenamento de sessão, ausência de parâmetros técnicos no texto e comportamento de todos os CTAs mobile/desktop.
 6. Testar scroll 25/50/75/90 conforme a configuração real do fluxo. Conferir vídeo/FAQ/carrossel.
 7. Revogar consentimento e testar bloqueio das próximas interações.
-8. Somente após revisão da categoria e permissões de dados do domínio/evento, decidir se Meta pode ser ativada. Testar os dois IDs no Meta Pixel Helper e no Test Events, verificando cada PageView e evento permitido. Se houver restrição, mantê-los desligados; não renomear eventos nem trocar domínio como evasão.
+8. Aceitar Marketing em um perfil de teste sem trava anterior; selecionar cada Pixel no Gerenciador de Eventos > Testar eventos e verificar `PageView` e `LEAD_LP` após clique no WhatsApp. O segundo clique em 24h não deve gerar outro `LEAD_LP`. Conferir Diagnósticos/eventos bloqueados de ambos os IDs. A captura fornecida refere-se ao Pixel `3112315745824007`; restrições do segundo não foram mostradas. Se houver bloqueio, desativar a integração afetada; não renomear eventos nem trocar domínio como evasão.
 
 ## 11. Limitações e pendências
 
-- Escolha/integração do consentimento ainda não fornecida; GA4 não coleta automaticamente.
-- Categoria, políticas e Test Events dos Pixels não acessíveis; Meta não ativada.
+- Consentimento separado integrado; bibliotecas não carregam sem autorização da respectiva finalidade.
+- Categoria/restrições conhecidas pelas capturas do proprietário; aceitação de eventos atuais e Testar eventos dos dois Pixels ainda não verificados.
 - Medição otimizada, evento principal e dimensões do GA4 precisam de configuração/validação na conta.
 - Mapa atual não tem clique externo observável; necessário decidir sobre link de localização.
 - DebugView, Pixel Helper e recebimento em servidores não foram validados nesta execução.
