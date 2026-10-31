@@ -1,0 +1,68 @@
+/* Seasonal treatment strictly scoped to the hero. Authority strip and site header are unchanged. */
+.hero--antecipa-black {
+  min-height: 800px;
+  height: auto;
+  isolation: isolate;
+  background: radial-gradient(ellipse at 78% 40%, #895b303d 0, transparent 46%), radial-gradient(ellipse at 8% 95%, #780a3c80 0, transparent 52%), linear-gradient(115deg, #100b0d, #22101a 60%, #130e0c);
+}
+.hero--antecipa-black .hero-grid { grid-template-columns: 1.05fr .95fr; min-height: 800px; height: auto; padding-top: 120px; align-items: center; }
+.hero--antecipa-black .hero-copy { max-width: 600px; padding: 0 0 100px; margin: 0; }
+.hero--antecipa-black .hero-campaign-date { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 20px; padding: 7px 14px; border: 1px solid #ddaf6659; border-radius: 30px; background: #e7bc7310; color: #f6d89e; font-size: 11px; font-weight: 600; letter-spacing: .12em; }
+.hero--antecipa-black .hero-campaign-date span { color: #efb95d; font-size: 16px; }
+.hero--antecipa-black .hero-campaign-name { margin: 0 0 13px; color: #f8e8d5; font-size: 20px; font-weight: 600; letter-spacing: .19em; line-height: 1.2; }
+.hero--antecipa-black .hero-campaign-name strong { color: #ff6b9e; font-weight: 800; }
+.hero--antecipa-black h1 { margin: 0 0 20px; font-size: clamp(65px, 6.6vw, 94px); line-height: 1.02; letter-spacing: -.055em; font-weight: 700; color: #f4d197; background: linear-gradient(110deg, #fff4da 8%, #f3cb85 48%, #dfa953 85%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.hero--antecipa-black h1 .hero-campaign-and { display: inline; font-size: .72em; font-weight: 400; }
+.hero--antecipa-black .hero-campaign-offer { margin: 0 0 8px; font-size: clamp(20px, 2vw, 27px); font-weight: 600; line-height: 1.35; color: #fff9f1; }
+.hero--antecipa-black .hero-campaign-description { max-width: 440px; margin: 0 0 18px; color: #e0cfd5; font-size: 14px; line-height: 1.65; }
+.hero--antecipa-black .hero-campaign-benefits { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 0; margin: 0 0 10px; list-style: none; color: #f4d39d; font-size: 12px; font-weight: 600; }
+.hero--antecipa-black .hero-campaign-benefits li { display: inline-flex; align-items: center; gap: 7px; }
+.hero--antecipa-black .hero-campaign-benefits li::before { content: ''; width: 5px; height: 5px; flex: 0 0 5px; border-radius: 50%; background: #f4578b; }
+.hero--antecipa-black .hero-campaign-cta { margin-top: 13px; padding: 16px 24px; font-size: 12px; box-shadow: 0 12px 32px #16b34926; }
+.hero--antecipa-black .hero-campaign-note { margin: 12px 0 0; font-size: 10px; color: #cbb9c0; }
+.hero--antecipa-black .hero-trust { margin-top: 18px; color: #e8d8dd; font-size: 11px; gap: 16px; }
+.hero--antecipa-black .hero-visual { height: 660px; align-self: end; }
+.hero--antecipa-black .hero-visual img { height: 630px; max-width: none; right: -15px; bottom: 25px; filter: drop-shadow(-10px 0 32px #f6bc5b12); }
+.hero--antecipa-black .portrait-halo { width: 470px; height: 550px; right: 0; bottom: 70px; border-radius: 48% 48% 38% 38%; border: 1px solid #e9c38240; background: radial-gradient(ellipse at 50% 45%, #d7a25930, #75431e0d 65%, transparent); box-shadow: 0 0 100px #dd9c3712, inset 0 0 80px #eab8620d; }
+.hero--antecipa-black .floating-card { right: 0; bottom: 125px; padding: 15px 21px; background: #27151ce8; color: #f4d197; border: 1px solid #e8bf7766; box-shadow: 0 12px 36px #0003; backdrop-filter: blur(12px); }
+.hero--antecipa-black .floating-card strong { font-size: 26px; }
+.hero--antecipa-black .floating-card span { color: #f8ebdb; }
+.hero--antecipa-black .hero-campaign-light { position: absolute; z-index: 0; pointer-events: none; width: 130%; height: 190px; left: -15%; bottom: 75px; border-top: 1px solid #d9ad695c; border-radius: 50%; transform: rotate(-12deg); box-shadow: 0 -12px 30px -25px #f8c365, 0 25px 55px -35px #e72d6f; }
+.hero--antecipa-black .scroll-cue { bottom: 21px; font-size: 10px; }
+@media (min-width: 901px) and (max-width: 1100px) {
+  .hero--antecipa-black .hero-visual img { height: 565px; right: -25px; }
+  .hero--antecipa-black .portrait-halo { width: 390px; height: 470px; }
+}
+@media (max-width: 900px) {
+  .hero--antecipa-black { min-height: 0; }
+  .hero--antecipa-black .hero-grid { grid-template-columns: 1fr; min-height: 0; padding-top: 114px; gap: 12px; }
+  .hero--antecipa-black .hero-copy { width: 100%; max-width: 600px; margin: 0 auto; padding: 0; text-align: center; }
+  .hero--antecipa-black .hero-campaign-date { margin-bottom: 17px; }
+  .hero--antecipa-black .hero-campaign-name { font-size: 19px; margin-bottom: 12px; }
+  .hero--antecipa-black .hero-copy h1 { font-size: clamp(58px, 12vw, 82px); margin-bottom: 16px; }
+  .hero--antecipa-black .hero-campaign-description { margin: 0 auto 15px; }
+  .hero--antecipa-black .hero-campaign-benefits { justify-content: center; }
+  .hero--antecipa-black .hero-trust { flex-direction: row; justify-content: center; gap: 12px; margin-top: 14px; font-size: 10px; }
+  .hero--antecipa-black .hero-visual { height: 470px; width: 100%; max-width: 520px; margin: 0 auto; }
+  .hero--antecipa-black .hero-visual img { height: 450px; max-width: 100%; right: 50%; transform: translateX(50%); bottom: 20px; }
+  .hero--antecipa-black .portrait-halo { width: 340px; height: 380px; right: 50%; transform: translateX(50%); bottom: 45px; }
+  .hero--antecipa-black .floating-card { right: 4%; bottom: 80px; padding: 11px 15px; }
+  .hero--antecipa-black .floating-card strong { font-size: 22px; }
+  .hero--antecipa-black .hero-campaign-light { bottom: 60px; }
+}
+@media (max-width: 560px) {
+  .hero--antecipa-black .hero-grid { padding-top: 104px; gap: 8px; }
+  .hero--antecipa-black .hero-campaign-date { font-size: 9px; padding: 5px 11px; margin-bottom: 14px; }
+  .hero--antecipa-black .hero-campaign-name { font-size: 16px; }
+  .hero--antecipa-black .hero-copy h1 { font-size: clamp(56px, 15vw, 72px); margin-bottom: 14px; }
+  .hero--antecipa-black .hero-campaign-offer { font-size: 20px; }
+  .hero--antecipa-black .hero-campaign-description { font-size: 12px; max-width: 320px; margin-bottom: 12px; }
+  .hero--antecipa-black .hero-campaign-benefits { font-size: 10px; gap: 6px 12px; }
+  .hero--antecipa-black .hero-campaign-cta { padding: 13px 18px; font-size: 10px; margin-top: 9px; }
+  .hero--antecipa-black .hero-campaign-note { font-size: 9px; margin-top: 9px; }
+  .hero--antecipa-black .hero-trust { font-size: 9px; gap: 8px; }
+  .hero--antecipa-black .hero-visual { height: 390px; }
+  .hero--antecipa-black .hero-visual img { height: 375px; }
+  .hero--antecipa-black .portrait-halo { width: min(310px, 95%); height: 330px; }
+  .hero--antecipa-black .floating-card { right: auto; left: 0; bottom: 60px; }
+}

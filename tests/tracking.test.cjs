@@ -216,7 +216,7 @@ async function run(browser) {
     const first = await t.clickWA();
     assert.equal(first.searchParams.get('phone'), '557499236477');
     const message = first.searchParams.get('text');
-    assert.equal(message, 'Olá! Gostaria de mais informações sobre DIU e Implanon, por favor.');
+    assert.equal(message, 'Olá! Vi a campanha Antecipa Black e gostaria de conhecer as condições para DIU e Implanon e agendar uma avaliação.');
     assert(!/Ref:|SHA-DI-/.test(message));
     assert(!/utm_|fbclid|teste123/.test(message));
     const again = await t.clickWA();
@@ -249,7 +249,9 @@ async function run(browser) {
     const selectors = ['.nav-cta','.hero .button','#videos .button','#metodos .button','#sobre .button','#depoimentos .button','#consultorio .button','#faq .button','.whatsapp-float'];
     for (const selector of selectors) {
       const destination = await t.clickWA(selector);
-      assert.equal(destination.searchParams.get('text'), 'Olá! Gostaria de mais informações sobre DIU e Implanon, por favor.');
+      assert.equal(destination.searchParams.get('text'), selector === '.hero .button'
+        ? 'Olá! Vi a campanha Antecipa Black e gostaria de conhecer as condições para DIU e Implanon e agendar uma avaliação.'
+        : 'Olá! Gostaria de mais informações sobre DIU e Implanon, por favor.');
     }
     const events = await eventList(t.page, 'lead_lp_implanon_diu');
     assert.equal(events.length, 1);
@@ -259,7 +261,7 @@ async function run(browser) {
     assert.equal(events[0][2].lead_id, id);
     assert.equal((await eventList(t.page, 'whatsapp_repeat_click')).length, 8);
     assert.deepEqual([events[0], ...(await eventList(t.page,'whatsapp_repeat_click'))].map(a=>a[2].button_location), ['header','hero','videos','consulta_implanon_diu','sobre_sheila','depoimentos','consultorio','faq','floating_whatsapp']);
-    assert.equal(new Set(t.outbound.map(u => new URL(u).searchParams.get('text'))).size, 1);
+    assert.equal(new Set(t.outbound.map(u => new URL(u).searchParams.get('text'))).size, 2);
     const tabs = await Promise.all([t.context.newPage(), t.context.newPage()]);
     await t.page.evaluate(() => localStorage.removeItem('sheila_implanon_diu_lead_last_sent'));
     await Promise.all(tabs.map(tab => tab.goto(base + '/', {waitUntil:'load'})));
