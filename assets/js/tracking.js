@@ -254,7 +254,7 @@
     const url = new URL('https://api.whatsapp.com/send');
     url.searchParams.set('phone', config.whatsappPhone);
     const message = link.matches('.hero--antecipa-black .hero-campaign-cta')
-      ? 'Olá! Vi a campanha Antecipa Black e gostaria de conhecer as condições para DIU e Implanon e agendar uma avaliação.'
+      ? 'Olá! Vi a campanha Black Friday — Última Chance, de 25 a 28 de novembro, e gostaria de consultar as vagas para DIU e Implanon e agendar minha avaliação.'
       : 'Olá! Gostaria de mais informações sobre DIU e Implanon, por favor.';
     url.searchParams.set('text', message);
     link.href = url.href;

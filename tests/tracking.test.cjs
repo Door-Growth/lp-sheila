@@ -216,7 +216,7 @@ async function run(browser) {
     const first = await t.clickWA();
     assert.equal(first.searchParams.get('phone'), '557499236477');
     const message = first.searchParams.get('text');
-    assert.equal(message, 'Olá! Vi a campanha Antecipa Black e gostaria de conhecer as condições para DIU e Implanon e agendar uma avaliação.');
+    assert.equal(message, 'Olá! Vi a campanha Black Friday — Última Chance, de 25 a 28 de novembro, e gostaria de consultar as vagas para DIU e Implanon e agendar minha avaliação.');
     assert(!/Ref:|SHA-DI-/.test(message));
     assert(!/utm_|fbclid|teste123/.test(message));
     const again = await t.clickWA();
@@ -250,7 +250,7 @@ async function run(browser) {
     for (const selector of selectors) {
       const destination = await t.clickWA(selector);
       assert.equal(destination.searchParams.get('text'), selector === '.hero .button'
-        ? 'Olá! Vi a campanha Antecipa Black e gostaria de conhecer as condições para DIU e Implanon e agendar uma avaliação.'
+        ? 'Olá! Vi a campanha Black Friday — Última Chance, de 25 a 28 de novembro, e gostaria de consultar as vagas para DIU e Implanon e agendar minha avaliação.'
         : 'Olá! Gostaria de mais informações sobre DIU e Implanon, por favor.');
     }
     const events = await eventList(t.page, 'lead_lp_implanon_diu');
